@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Microservices Lab 01 | Lập trình Web 3</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400..700&amp;display=swap">
+  <style>
+    :root {
+      --ink: #111318;
+      --muted: #526071;
+      --surface: #f2f6f9;
+      --blue: #438bef;
+      --tint: #eef5ff;
+      --line: #dbe4ed;
+      --control-height: 52px;
+      --control-radius: calc(var(--control-height) / 2);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--surface);
+      color: var(--ink);
+      font: 16px/1.5 Outfit, system-ui, sans-serif;
+    }
+    .wrap { width: min(1120px, calc(100% - 48px)); margin-inline: auto; }
+    .course { border-bottom: 1px solid var(--line); background: white; }
+    .course .wrap {
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: space-between; gap: 6px 24px; padding-block: 18px;
+    }
+    .course strong { font-weight: 600; }
+    .course span, .intro p, .status { color: var(--muted); }
+    main { padding-block: 42px 52px; }
+    .intro {
+      display: grid; grid-template-columns: 1.12fr 1fr;
+      align-items: center; gap: 32px; margin-bottom: 32px;
+    }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: clamp(2.3rem, 5.3vw, 4.35rem); letter-spacing: -.045em; line-height: 1.04; }
+    .intro p { margin-top: 14px; max-width: 37ch; }
+    .route {
+      background: #dcebff; padding: 20px; border-radius: 24px;
+      color: #173455;
+    }
+    .route h2 { font-size: .9rem; font-weight: 600; margin-bottom: 12px; }
+    .route ol {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin: 0; padding: 0; list-style: none;
+    }
+    .route li { display: flex; align-items: center; gap: 8px; }
+    .node {
+      display: block; padding: 8px 11px; border-radius: 12px;
+      background: #f8fbff; border: 1px solid white;
+      font-size: .875rem; font-weight: 600;
+    }
+    .node small { display: block; font: .75rem/1.45 ui-monospace, monospace; }
+    .glass .node { background: rgba(255, 255, 255, .76); }
+    @supports (backdrop-filter: blur(16px)) {
+      .glass .node { backdrop-filter: blur(16px) saturate(150%); }
+    }
+    .workspace {
+      display: grid; grid-template-columns: 1fr 1.12fr; gap: 22px;
+      align-items: stretch;
+    }
+    .panel {
+      min-width: 0; padding: clamp(18px, 3vw, 30px);
+      border-radius: 24px; border: 1px solid var(--line); background: white;
+    }
+    .panel h2 { font-size: 1.375rem; font-weight: 600; line-height: 1.2; }
+    .endpoint {
+      display: block; margin-top: 10px; color: #315683;
+      font: .82rem/1.5 ui-monospace, monospace; overflow-wrap: anywhere;
+    }
+    .load-action, form { margin-top: 24px; }
+    button, input {
+      min-height: var(--control-height); border-radius: var(--control-radius);
+      padding: 8px 18px; border: 1px solid transparent;
+      font: 600 1rem/1.2 Outfit, system-ui, sans-serif;
+      transition: background-color 150ms ease, transform 150ms ease;
+    }
+    button { cursor: pointer; color: #071b35; background: var(--blue); }
+    button:hover { background: #77b3ff; }
+    button:active { transform: scale(.98); }
+    button:disabled { cursor: wait; background: #e1e9f2; color: #415269; }
+    .lookup button { background: var(--tint); border-color: #a8c5e9; }
+    .lookup button:not(:disabled):hover { background: #dcebff; }
+    .lookup button:disabled { background: #e1e9f2; border-color: var(--line); }
+    input {
+      width: 100%; min-width: 0; color: var(--ink); background: #f6f8fa;
+      border-color: #8290a2; font-weight: 400;
+    }
+    input::placeholder { color: var(--muted); opacity: 1; }
+    input:hover { border-color: #315683; }
+    :focus-visible { outline: 3px solid #2463a7; outline-offset: 4px; }
+    label { display: block; font-weight: 600; font-size: .875rem; margin-bottom: 7px; }
+    .fields { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+    .output {
+      margin-top: 25px; min-height: 174px;
+      background: #f6f8fa; border: 1px solid var(--line); border-radius: 16px;
+    }
+    .output-title {
+      padding: 10px 14px; border-bottom: 1px solid var(--line);
+      color: #31445c; font-size: .85rem; font-weight: 600;
+    }
+    .status, #productList li, #result { padding: 12px 14px; overflow-wrap: anywhere; }
+    .status { font-size: .9375rem; }
+    #productList { list-style: none; padding: 0; margin: 0; }
+    #productList li + li { border-top: 1px solid var(--line); }
+    #result {
+      margin: 0; white-space: pre-wrap; color: #243a55;
+      font: .875rem/1.55 ui-monospace, monospace;
+    }
+    #result[data-state="json"] { background: var(--tint); border-radius: 0 0 16px 16px; }
+    #result[data-state="error"], .status[data-state="error"] { color: #9a2929; }
+    @media (max-width: 850px) {
+      .intro, .workspace { grid-template-columns: minmax(0, 1fr); }
+      .intro { gap: 22px; }
+      main { padding-top: 30px; }
+    }
+    @media (max-width: 440px) {
+      .wrap { width: calc(100% - 32px); }
+      .fields { grid-template-columns: minmax(0, 1fr); }
+      .fields button, .load-action { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      button, input { transition: none; }
+      button:active { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="course">
+    <div class="wrap">
+      <strong>Lập trình Web 3</strong>
+      <span>Spring Boot · Lab 01</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="intro">
+      <div>
+        <h1>Microservices Lab</h1>
+        <p>Tải danh sách từ Product Service hoặc tra cứu một sản phẩm theo ID qua Order Service.</p>
+      </div>
+      <section class="route" aria-labelledby="route-heading">
+        <h2 id="route-heading">Luồng gọi khi tra cứu</h2>
+        <ol>
+          <li><span class="node">Trình duyệt</span></li>
+          <li class="glass"><span aria-hidden="true">→</span><span class="node">Order Service <small>localhost:8082</small></span></li>
+          <li><span aria-hidden="true">→</span><span class="node">Product Service <small>localhost:8081</small></span></li>
+        </ol>
+      </section>
+    </div>
+
+    <div class="workspace">
+      <section class="panel" aria-labelledby="products-heading">
+        <h2 id="products-heading">Danh sách sản phẩm</h2>
+        <code class="endpoint">GET :8081/api/products</code>
+        <button type="button" class="load-action" id="loadButton" onclick="loadProducts()">Tải danh sách sản phẩm</button>
+        <div class="output">
+          <h3 class="output-title">Sản phẩm nhận được</h3>
+          <p class="status" id="listStatus" role="status">Bấm tải danh sách để lấy dữ liệu từ Product Service.</p>
+          <ul id="productList" aria-label="Sản phẩm nhận được"></ul>
+        </div>
+      </section>
+
+      <section class="panel lookup" aria-labelledby="lookup-heading">
+        <h2 id="lookup-heading">Tìm sản phẩm thông qua Order Service</h2>
+        <code class="endpoint">GET :8082/api/orders/product/{id}</code>
+        <form id="lookupForm" novalidate>
+          <label for="productId">ID sản phẩm</label>
+          <div class="fields">
+            <input type="number" id="productId" placeholder="Nhập ID sản phẩm" min="1" step="1">
+            <button type="button" id="findButton" onclick="findProduct()">Tìm sản phẩm</button>
+          </div>
+        </form>
+        <div class="output">
+          <h3 class="output-title">Kết quả tra cứu</h3>
+          <pre id="result" role="status" aria-atomic="true">Nhập ID sản phẩm để xem phản hồi JSON.</pre>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const list = document.getElementById("productList");
+    const listStatus = document.getElementById("listStatus");
+    const loadButton = document.getElementById("loadButton");
+    const productId = document.getElementById("productId");
+    const result = document.getElementById("result");
+    const findButton = document.getElementById("findButton");
+
+    document.getElementById("lookupForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      findProduct();
+    });
+
+    async function loadProducts() {
+      if (loadButton.disabled) return;
+      loadButton.disabled = true;
+      list.replaceChildren();
+      listStatus.dataset.state = "loading";
+      listStatus.textContent = "Đang tải danh sách từ Product Service…";
+
+      try {
+        const response = await fetch("http://localhost:8081/api/products");
+        if (!response.ok) {
+          throw new Error("Không thể tải danh sách sản phẩm");
+        }
+        const products = await response.json();
+        const items = document.createDocumentFragment();
+        products.forEach((product) => {
+          const li = document.createElement("li");
+          li.textContent = `${product.id} - ${product.name}`;
+          items.appendChild(li);
+        });
+        list.appendChild(items);
+        listStatus.textContent = products.length
+          ? `Đã tải ${products.length} sản phẩm`
+          : "Chưa có sản phẩm";
+      } catch (error) {
+        listStatus.dataset.state = "error";
+        listStatus.textContent = "Lỗi: " + error.message;
+      } finally {
+        loadButton.disabled = false;
+      }
+    }
+
+    async function findProduct() {
+      if (findButton.disabled) return;
+      const id = productId.value;
+      result.dataset.state = "";
+      if (!id || !Number.isInteger(Number(id)) || Number(id) < 1) {
+        productId.setAttribute("aria-invalid", "true");
+        result.dataset.state = "error";
+        result.textContent = "Vui lòng nhập ID hợp lệ";
+        productId.focus();
+        return;
+      }
+
+      productId.removeAttribute("aria-invalid");
+      findButton.disabled = true;
+      result.textContent = `Đang tìm sản phẩm ${id} qua Order Service…`;
+
+      try {
+        const response = await fetch(`http://localhost:8082/api/orders/product/${id}`);
+        if (response.status === 404) {
+          result.textContent = "Không tìm thấy sản phẩm";
+          return;
+        }
+        if (!response.ok) {
+          throw new Error("Không thể lấy thông tin sản phẩm");
+        }
+        const product = await response.json();
+        result.dataset.state = "json";
+        result.textContent = JSON.stringify(product, null, 2);
+      } catch (error) {
+        result.dataset.state = "error";
+        result.textContent = "Lỗi: " + error.message;
+      } finally {
+        findButton.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

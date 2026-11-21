@@ -1,9 +1,11 @@
 package com.example.order_service;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
 import java.util.*;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/orders")
 
@@ -26,10 +28,18 @@ public class OrderController {
   }
 
   @GetMapping("/product/{id}")
-  public String getProduct(@PathVariable int id) {
+  public ResponseEntity<String> getProduct(@PathVariable int id) {
     return restClient.get()
         .uri("/api/products/{id}", id)
-        .retrieve()
-        .body(String.class);
+        .exchange((request, response) -> {
+          String body = new String(
+              response.getBody().readAllBytes(),
+              java.nio.charset.StandardCharsets.UTF_8
+          );
+
+          return ResponseEntity
+              .status(response.getStatusCode())
+              .body(body);
+        });
   }
 }
